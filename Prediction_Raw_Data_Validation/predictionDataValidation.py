@@ -169,92 +169,56 @@ class PredictionDataValidation:
                 self.logger.log(f, "Invalid File Name!! File moved to Bad Raw Folder :: %s" % filename)
         f.close()
 
-    def validateColumnLength(self, NumberofColumns):
+    def validate_number_of_columns_in_file(self, number_of_columns):
         """
-                    Method Name: validate_number_of_columns_in_file
-                    Description: This function validates the number of columns in the csv files.
-                                 It is should be same as given in the schema file.
-                                 If not same file is not suitable for processing and thus is moved to Bad Raw Data folder.
-                                 If the column number matches, file is kept in Good Raw Data for processing.
-                                The csv file is missing the first column name, this function changes the missing name to "Wafer".
-                    Output: None
-                    On Failure: Exception
-
-                     Written By: iNeuron Intelligence
-                    Version: 1.0
-                    Revisions: None
-
-             """
-        try:
-            f = open("Prediction_Logs/columnValidationLog.txt", 'a+')
-            self.logger.log(f, "Column Length Validation Started!!")
-            for file in listdir('Prediction_Raw_Files_Validated/Good_Raw/'):
-                csv = pd.read_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file)
-                if csv.shape[1] == NumberofColumns:
-                    csv.to_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file, index=None, header=True)
-                else:
-                    shutil.move("Prediction_Raw_Files_Validated/Good_Raw/" + file,
-                                "Prediction_Raw_Files_Validated/Bad_Raw")
-                    self.logger.log(f, "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s" % file)
-
-            self.logger.log(f, "Column Length Validation Completed!!")
-        except OSError:
-            f = open("Prediction_Logs/columnValidationLog.txt", 'a+')
-            self.logger.log(f, "Error Occured while moving the file :: %s" % OSError)
-            f.close()
-            raise OSError
-        except Exception as e:
-            f = open("Prediction_Logs/columnValidationLog.txt", 'a+')
-            self.logger.log(f, "Error Occured:: %s" % e)
-            f.close()
-            raise e
-
+        This method is used to check whether the file has the correct number of columns.
+        params: Number of columns
+        Iterate over files in 'Training_Raw_files_validated/Good_Raw/' --> create a pandas dataframe of the file -->
+        check the shape of the dataframe --> shape rows 'rows, columns' so take the second element and compare it with
+        number of columns --> if false move the file into "Training_Raw_files_validated/Bad_Raw".
+        returns: None
+        """
+        f = open("Prediction_Logs/columnValidationLog.txt", 'a+')
+        self.logger.log(f, "Column Length Validation Started!!")
+        for file in listdir('Prediction_Raw_Files_Validated/Good_Raw/'):
+            csv = pd.read_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file)
+            if csv.shape[1] == number_of_columns:
+                csv.to_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file, index=None, header=True)
+            else:
+                shutil.move("Prediction_Raw_Files_Validated/Good_Raw/" + file,
+                            "Prediction_Raw_Files_Validated/Bad_Raw")
+                self.logger.log(f, "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s" % file)
+        self.logger.log(f, "Column Length Validation Completed!!")
         f.close()
 
-    def delete_prediction_file(self):
+    @staticmethod
+    def delete_prediction_file():
 
         if os.path.exists('Prediction_Output_File/Predictions.csv'):
             os.remove('Prediction_Output_File/Predictions.csv')
 
-    def validateMissingValuesInWholeColumn(self):
+    def validate_if_entire_column_has_missing_values(self):
         """
-                                  Method Name: validate_if_entire_column_has_missing_values
-                                  Description: This function validates if any column in the csv file has all values missing.
-                                               If all the values are missing, the file is not suitable for processing.
-                                               SUch files are moved to bad raw data.
-                                  Output: None
-                                  On Failure: Exception
-
-                                   Written By: iNeuron Intelligence
-                                  Version: 1.0
-                                  Revisions: None
-
-                              """
-        try:
-            f = open("Prediction_Logs/missingValuesInColumn.txt", 'a+')
-            self.logger.log(f, "Missing Values Validation Started!!")
-
-            for file in listdir('Prediction_Raw_Files_Validated/Good_Raw/'):
-                csv = pd.read_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file)
-                count = 0
-                for columns in csv:
-                    if (len(csv[columns]) - csv[columns].count()) == len(csv[columns]):
-                        count += 1
-                        shutil.move("Prediction_Raw_Files_Validated/Good_Raw/" + file,
-                                    "Prediction_Raw_Files_Validated/Bad_Raw")
-                        self.logger.log(f,
-                                        "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s" % file)
-                        break
-                if count == 0:
-                    csv.to_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file, index=None, header=True)
-        except OSError:
-            f = open("Prediction_Logs/missingValuesInColumn.txt", 'a+')
-            self.logger.log(f, "Error Occured while moving the file :: %s" % OSError)
-            f.close()
-            raise OSError
-        except Exception as e:
-            f = open("Prediction_Logs/missingValuesInColumn.txt", 'a+')
-            self.logger.log(f, "Error Occured:: %s" % e)
-            f.close()
-            raise e
+        Checks whether all the values in the column are null values.
+        params: None
+        Iterate over files in 'Prediction_Raw_files_validated/Good_Raw' --> create a df of the file --> iterate over
+        columns of the dataframe --> if the number of rows in a column - the sum of non-null rows = number of rows -->
+        then the entire row contains null values --> move to bad folder.
+        returns: None
+        """
+        f = open("Prediction_Logs/missingValuesInColumn.txt", 'a+')
+        self.logger.log(f, "Missing Values Validation Started!!")
+        for file in listdir('Prediction_Raw_Files_Validated/Good_Raw/'):
+            csv = pd.read_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file)
+            count = 0
+            for columns in csv:
+                if (len(csv[columns]) - csv[columns].count()) == len(csv[columns]):
+                    count += 1
+                    shutil.move("Prediction_Raw_Files_Validated/Good_Raw/" + file,
+                                "Prediction_Raw_Files_Validated/Bad_Raw")
+                    self.logger.log(f,
+                                    "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s" % file)
+                    break
+            if count == 0:
+                csv.to_csv("Prediction_Raw_Files_Validated/Good_Raw/" + file, index=None, header=True)
         f.close()
