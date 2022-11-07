@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import KNNImputer
+from imblearn.over_sampling import RandomOverSampler
 
 
 class Preprocessor:
@@ -49,8 +51,8 @@ class Preprocessor:
         # drop the columns specified and separate the feature columns
         x = data.drop(labels=label_column_name, axis=1)
         y = data[label_column_name]
-        self.logger_object.log(self.file_object,'Label Separation Successful. Exited the separate_label_feature '
-                                                'method of the Preprocessor class')
+        self.logger_object.log(self.file_object, 'Label Separation Successful. Exited the separate_label_feature '
+                                                 'method of the Preprocessor class')
         return x, y
 
     def is_null_present(self, data):
@@ -82,124 +84,65 @@ class Preprocessor:
 
     def impute_missing_values(self, data, cols_with_missing_values):
         """
-                                        Method Name: impute_missing_values
-                                        Description: This method replaces all the missing values in the Dataframe using KNN Imputer.
-                                        Output: A Dataframe which has all the missing values imputed.
-                                        On Failure: Raise Exception
-
-                                        Written By: iNeuron Intelligence
-                                        Version: 1.0
-                                        Revisions: None
-                     """
+        This method replaces all the missing values in the Dataframe using KNN imputer.
+        Iterate over columns with missing values --> impute the missing values with KNN.
+        returns: data
+        """
         self.logger_object.log(self.file_object, 'Entered the impute_missing_values method of the Preprocessor class')
-        self.data = data
-        self.cols_with_missing_values = cols_with_missing_values
-        try:
-            self.imputer = CategoricalImputer()
-            for col in self.cols_with_missing_values:
-                self.data[col] = self.imputer.fit_transform(self.data[col])
-            self.logger_object.log(self.file_object,
-                                   'Imputing missing values Successful. Exited the impute_missing_values method of the Preprocessor class')
-            return self.data
-        except Exception as e:
-            self.logger_object.log(self.file_object,
-                                   'Exception occured in impute_missing_values method of the Preprocessor class. Exception message:  ' + str(
-                                       e))
-            self.logger_object.log(self.file_object,
-                                   'Imputing missing values failed. Exited the impute_missing_values method of the Preprocessor class')
-            raise Exception()
+        imputer = KNNImputer(n_neighbors=2)
+        for col in cols_with_missing_values:
+            data[col] = imputer.fit_transform(data[col])
+        self.logger_object.log(self.file_object, 'Imputing missing values Successful. Exited the '
+                                                 'impute_missing_values method of the Preprocessor class')
+        return data
 
     def scale_numerical_columns(self, data):
         """
-                                                        Method Name: scale_numerical_columns
-                                                        Description: This method scales the numerical values using the Standard scaler.
-                                                        Output: A dataframe with scaled
-                                                        On Failure: Raise Exception
-
-                                                        Written By: iNeuron Intelligence
-                                                        Version: 1.0
-                                                        Revisions: None
-                                     """
-        self.logger_object.log(self.file_object,
-                               'Entered the scale_numerical_columns method of the Preprocessor class')
-
-        self.data = data
-
-        try:
-            self.num_df = self.data.select_dtypes(include=['int64']).copy()
-            self.scaler = StandardScaler()
-            self.scaled_data = self.scaler.fit_transform(self.num_df)
-            self.scaled_num_df = pd.DataFrame(data=self.scaled_data, columns=self.num_df.columns)
-
-            self.logger_object.log(self.file_object,
-                                   'scaling for numerical values successful. Exited the scale_numerical_columns method of the Preprocessor class')
-            return self.scaled_num_df
-
-        except Exception as e:
-            self.logger_object.log(self.file_object,
-                                   'Exception occured in scale_numerical_columns method of the Preprocessor class. Exception message:  ' + str(
-                                       e))
-            self.logger_object.log(self.file_object,
-                                   'scaling for numerical columns Failed. Exited the scale_numerical_columns method of the Preprocessor class')
-            raise Exception()
+        This method scales all the numerical values using the Standard scaler to scale all the numbers in the
+        same range.
+        params: data
+        create a df of the columns with datatype as int64 --> transform the data using standard scaler --> create a
+        dataframe of the scaled columns.
+        returns: scaled_df
+        """
+        scaler = StandardScaler()
+        self.logger_object.log(self.file_object, 'Entered the scale_numerical_columns method of the '
+                                                 'Preprocessor class')
+        num_df = data.select_dtypes(include=['int64']).copy()
+        scaled_data = scaler.fit_transform(num_df)
+        scaled_df = pd.DataFrame(data=scaled_data, columns=num_df.columns)
+        self.logger_object.log(self.file_object, 'scaling for numerical values successful. Exited the '
+                                                 'scale_numerical_columns method of the Preprocessor class')
+        return scaled_df
 
     def encode_categorical_columns(self, data):
         """
-                                                Method Name: encode_categorical_columns
-                                                Description: This method encodes the categorical values to numeric values.
-                                                Output: only the columns with categorical values converted to numerical values
-                                                On Failure: Raise Exception
-
-                                                Written By: iNeuron Intelligence
-                                                Version: 1.0
-                                                Revisions: None
-                             """
+        This method encodes the categorical values to numeric values using an encoder.
+        params: data
+        Get the columns with categorical datatype --> iterate over columns --> get the encoding.
+        returns: cat_df
+        """
         self.logger_object.log(self.file_object,
                                'Entered the encode_categorical_columns method of the Preprocessor class')
-
-        try:
-            self.cat_df = data.select_dtypes(include=['object']).copy()
-            # Using the dummy encoding to encode the categorical columns to numericsl ones
-            for col in self.cat_df.columns:
-                self.cat_df = pd.get_dummies(self.cat_df, columns=[col], prefix=[col], drop_first=True)
-
-            self.logger_object.log(self.file_object,
-                                   'encoding for categorical values successful. Exited the encode_categorical_columns method of the Preprocessor class')
-            return self.cat_df
-
-        except Exception as e:
-            self.logger_object.log(self.file_object,
-                                   'Exception occured in encode_categorical_columns method of the Preprocessor class. Exception message:  ' + str(
-                                       e))
-            self.logger_object.log(self.file_object,
-                                   'encoding for categorical columns Failed. Exited the encode_categorical_columns method of the Preprocessor class')
-            raise Exception()
+        cat_df = data.select_dtypes(include=['object']).copy()
+        # Using the dummy encoding to encode the categorical columns to numerical ones
+        for col in cat_df.columns:
+            cat_df = pd.get_dummies(cat_df, columns=[col], prefix=[col], drop_first=True)
+        self.logger_object.log(self.file_object, 'encoding for categorical values successful. Exited the '
+                                                 'encode_categorical_columns method of the Preprocessor class')
+        return cat_df
 
     def handle_imbalanced_dataset(self, x, y):
         """
-        Method Name: handle_imbalanced_dataset
-        Description: This method handles the imbalanced dataset to make it a balanced one.
-        Output: new balanced feature and target columns
-        On Failure: Raise Exception
-
-        Written By: iNeuron Intelligence
-        Version: 1.0
-        Revisions: None
-                                     """
+        This method handles the imbalanced dataset to make it a balanced one.
+        params: x, y
+        Sample the x and y data.
+        returns: x_sampled, y_sampled
+        """
         self.logger_object.log(self.file_object,
                                'Entered the handle_imbalanced_dataset method of the Preprocessor class')
-
-        try:
-            self.rdsmple = RandomOverSampler()
-            self.x_sampled, self.y_sampled = self.rdsmple.fit_sample(x, y)
-            self.logger_object.log(self.file_object,
-                                   'dataset balancing successful. Exited the handle_imbalanced_dataset method of the Preprocessor class')
-            return self.x_sampled, self.y_sampled
-
-        except Exception as e:
-            self.logger_object.log(self.file_object,
-                                   'Exception occured in handle_imbalanced_dataset method of the Preprocessor class. Exception message:  ' + str(
-                                       e))
-            self.logger_object.log(self.file_object,
-                                   'dataset balancing Failed. Exited the handle_imbalanced_dataset method of the Preprocessor class')
-            raise Exception()
+        random_sampler = RandomOverSampler()
+        x_sampled, y_sampled = random_sampler.fit_sample(x, y)
+        self.logger_object.log(self.file_object, 'dataset balancing successful. Exited the '
+                                                 'handle_imbalanced_dataset method of the Preprocessor class')
+        return x_sampled, y_sampled
