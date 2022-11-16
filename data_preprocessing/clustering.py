@@ -51,7 +51,7 @@ class KMeansClustering:
         self.logger_object.log(self.file_object, 'Entered the create_clusters method of the KMeansClustering class')
         kmeans = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
         y_kmeans = kmeans.fit_predict(data)  # divide data into clusters
-        file_op = file_methods.File_Operation(self.file_object, self.logger_object)
+        file_op = file_methods.FileOperation(self.file_object, self.logger_object)
         file_op.save_model(kmeans, 'KMeans')  # saving the KMeans model to directory
         # passing 'Model' as the functions need three parameters
         data['Cluster'] = y_kmeans  # create a new column in dataset for storing the cluster information
