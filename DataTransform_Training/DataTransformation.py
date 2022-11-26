@@ -21,8 +21,8 @@ class DataTransform:
         returns: None
         """
         log_file = open("Training_Logs/dataTransformLog.txt", 'a+')
-        all_files = [f for f in listdir(self.good_data_path)]
-        for file in all_files:
+        # all_files = [f for f in listdir(self.good_data_path)]
+        for file in listdir(self.good_data_path):
             data = pandas.read_csv(self.good_data_path + "/" + file)
             data.to_csv(self.good_data_path + "/" + file, index=None, header=True)
             self.logger.log(log_file, " %s: Quotes added successfully!!" % file)

@@ -1,6 +1,5 @@
 import shutil
 import sqlite3
-from datetime import datetime
 from os import listdir
 import os
 import csv
@@ -79,15 +78,15 @@ class DBOperation:
         conn = self.create_data_base_connection(database)
         good_file_path = self.goodFilePath
         bad_file_path = self.badFilePath
-        all_files = [f for f in listdir(good_file_path)]
         log_file = open("Training_Logs/DbInsertLog.txt", 'a+')
-        for file in all_files:
+        for file in listdir(good_file_path):
             try:
                 with open(good_file_path + '/' + file, "r") as f:
                     next(f)
                     reader = csv.reader(f, delimiter="\n")
                     for idx, line in enumerate(reader):
                         for values in line:
+                            print(values)
                             conn.execute('INSERT INTO Good_Raw_Data values ({values})'.format(values=values))
                             self.logger.log(log_file, " %s: File loaded successfully!!" % file)
                             conn.commit()

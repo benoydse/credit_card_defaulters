@@ -1,4 +1,3 @@
-import sqlite3
 from datetime import datetime
 from os import listdir
 import os
@@ -32,10 +31,10 @@ class RawDataValidation:
             with open(self.schema_path, 'r') as f:
                 json_loaded_file = json.load(f)
                 f.close()
-            length_of_date_stamp_in_file = json_loaded_file['length_of_date_stamp_in_file']
-            length_of_time_stamp_in_file = json_loaded_file['length_of_time_stamp_in_file']
+            length_of_date_stamp_in_file = json_loaded_file["LengthOfDateStampInFile"]
+            length_of_time_stamp_in_file = json_loaded_file["LengthOfTimeStampInFile"]
             column_names = json_loaded_file['ColName']
-            number_of_columns = json_loaded_file['number_of_columns']
+            number_of_columns = json_loaded_file["NumberofColumns"]
             file = open("Training_Logs/valuesfromSchemaValidationLog.txt", 'a+')
             message = "length_of_date_stamp_in_file:: %s" % length_of_date_stamp_in_file + "\t" + \
                       "length_of_time_stamp_in_file:: %s" % length_of_time_stamp_in_file + "\t " + \
@@ -172,8 +171,8 @@ class RawDataValidation:
         f = open("Training_Logs/nameValidationLog.txt", 'a+')
         for filename in all_files:
             if re.match(regex, filename):  # ex file_name : creditCardFraud_28011960_120210.csv
-                name_and_csv = re.split('.', filename)  # ['creditCardFraud_28011960_120210', 'csv']
-                name_dstamp_tstamp = (re.split('_', name_and_csv[0]))  # ['creditCardFraud', '28011960', '120210']
+                name_and_csv = filename.split('.')  # ['creditCardFraud_28011960_120210', 'csv']
+                name_dstamp_tstamp = name_and_csv[0].split('_')  # ['creditCardFraud', '28011960', '120210']
                 if len(name_dstamp_tstamp[1]) == length_of_date_stamp_in_file:
                     if len(name_dstamp_tstamp[2]) == length_of_time_stamp_in_file:
                         shutil.copy("Training_Batch_Files/" + filename, "Training_Raw_files_validated/Good_Raw")
