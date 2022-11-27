@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 import pandas as pd
 from file_operations import file_methods
 from data_preprocessing import preprocessing
@@ -15,6 +17,11 @@ class Prediction:
         self.file_object = open("Prediction_Logs/Prediction_Log.txt", 'a+')
         self.log_writer = AppLogger()
         self.pred_data_val = PredictionDataValidation(path)
+        if not os.path.exists('Prediction_Output_File'):
+            os.makedirs(name='Prediction_Output_File')
+        self._predicted_op_path = Path('Prediction_Output_File') / 'Predictions.csv'
+        if os.path.exists(self._predicted_op_path):
+            os.remove(self._predicted_op_path)
 
     def data_prediction(self):
         """
@@ -26,7 +33,6 @@ class Prediction:
         model for the data --> perform prediction --> save to a csv file.
         returns: None
         """
-        path = "Prediction_Output_File/Predictions.csv"
         self.pred_data_val.delete_prediction_file()  # deletes the existing prediction file from last run
         self.log_writer.log(self.file_object, 'Start of Prediction')
         data_getter = data_loader_prediction.DataGetterPred(self.file_object, self.log_writer)
@@ -50,7 +56,7 @@ class Prediction:
             model = file_loader.load_model(model_name)
             result = (model.predict(cluster_data))
             final = pd.DataFrame(list(zip(result)), columns=['Predictions'])
-            final.to_csv("Prediction_Output_File/Predictions.csv", header=True, mode='a+')
+            final.to_csv(self._predicted_op_path, header=True, mode='a+')
             # appends result to prediction file
         self.log_writer.log(self.file_object, 'End of Prediction')
-        return path
+        return self._predicted_op_path

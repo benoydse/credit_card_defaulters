@@ -30,10 +30,10 @@ class PredictionDataValidation:
         with open(self.schema_path, 'r') as f:
             dic = json.load(f)
             f.close()
-        length_of_date_stamp_in_file = dic['length_of_date_stamp_in_file']
-        length_of_time_stamp_in_file = dic['length_of_time_stamp_in_file']
+        length_of_date_stamp_in_file = dic['LengthOfDateStampInFile']
+        length_of_time_stamp_in_file = dic['LengthOfTimeStampInFile']
         column_names = dic['ColName']
-        number_of_columns = dic['number_of_columns']
+        number_of_columns = dic['NumberofColumns']
         file = open("Training_Logs/valuesfromSchemaValidationLog.txt", 'a+')
         message = "length_of_date_stamp_in_file:: %s" % length_of_date_stamp_in_file + "\t" + \
                   "length_of_time_stamp_in_file:: %s" % length_of_time_stamp_in_file + "\t " + \
